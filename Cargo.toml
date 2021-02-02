@@ -1,0 +1,22 @@
+[package]
+name = "ble-gateway-api"
+version = "0.1.0"
+authors = ["chansuke <chansuke@georepublic.de>"]
+edition = "2018"
+
+[dependencies]
+actix-web = "3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0.38"
+env_logger = "0.8"
+futures = "0.3.1"
+num_cpus = "1.13"
+r2d2 = "0.8.8"
+rusqlite = { version = "0.21", features = [ "chrono" ] }
+chrono = { version = "0.4", features = ["serde"] }
+diesel = { version = "1.4.4", features = ["postgres", "uuidv07", "r2d2", "chrono", "64-column-tables"] }
+dotenv = "0.15.0"
+async-trait = "0.1.42"
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
