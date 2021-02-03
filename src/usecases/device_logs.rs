@@ -1,18 +1,18 @@
-use async_trait::async_trait;
+use actix_web::{web, Error, HttpResponse};
+use anyhow::Result;
 
-use crate::repositories::device_logs::UsesDeviceLogRepository;
+use crate::db::config::Pool;
+use crate::models::device_logs::DeviceLogPayload;
+use crate::repositories::device_logs::get_device_logs as list;
+use crate::repositories::device_logs::post_device_logs as post;
 
-#[async_trait]
-pub trait DeviceLogUseCase: UsesDeviceLogRepository + Sync {
-    async fn get_device_logs(&self) {
-      self.provide_device_log_repository();
-    }
+pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
+    list(db).await
 }
 
-impl<T: UsesDeviceLogRepository + Sync> DeviceLogUseCase for T {}
-
-pub trait UsesDeviceLogUseCase {
-    type DeviceLogUseCase: DeviceLogUseCase;
-
-    fn provide_device_log_usecase(&self) -> Self::DeviceLogUseCase;
+pub async fn post_device_logs(
+    db: web::Data<Pool>,
+    data: web::Json<DeviceLogPayload>,
+) -> Result<HttpResponse, Error> {
+    post(db, data).await
 }

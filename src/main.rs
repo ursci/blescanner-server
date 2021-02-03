@@ -1,19 +1,18 @@
 #[macro_use]
 extern crate diesel;
+extern crate diesel_migrations;
 
 use actix_web::{middleware, web, App, HttpServer};
-use diesel::prelude::*;
-use diesel::r2d2::{self, ConnectionManager};
 
-use crate::handlers::device_logs::UsesDeviceLogHandler;
+use crate::db::config::establish_connection;
+use crate::handlers::device_logs::{get_device_logs, post_device_logs};
 
+mod db;
+mod errors;
+mod handlers;
 mod models;
 mod repositories;
 mod usecases;
-mod handlers;
-mod db;
-
-pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -21,23 +20,18 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
     std::env::set_var("RUST_LOG", "actix_web=debug");
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let manager = ConnectionManager::<PgConnection>::new(database_url);
-    let pool: Pool = r2d2::Pool::builder()
-        .build(manager)
-        .expect("Failed to create pool.");
-
+    let pool = establish_connection();
 
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
             .wrap(middleware::Logger::default())
             .service(
-                web::scope("/api/v1")
-                    .service(
-                        web::resource("/device_logs")
-                            .route(web::get().to(device_log_handler::<UsesDeviceLogUseCase>))
-                    )
+                web::scope("/api/v1").service(
+                    web::resource("/device_logs")
+                        .route(web::get().to(get_device_logs))
+                        .route(web::post().to(post_device_logs)),
+                ),
             )
     })
     .bind("127.0.0.1:8081")?
