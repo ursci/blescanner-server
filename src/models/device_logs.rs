@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::db::schema::*;
 
-
 /// Data type that sent from the gateway to `POST /api/v1/device_logs`
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeviceLogPayload {

@@ -10,6 +10,9 @@ pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error>
     list(db).await
 }
 
-pub async fn post_device_logs(db: web::Data<Pool>, data: web::Json<DeviceLogPayload>,) -> Result<HttpResponse, Error> {
+pub async fn post_device_logs(
+    db: web::Data<Pool>,
+    data: web::Json<DeviceLogPayload>,
+) -> Result<HttpResponse, Error> {
     post(db, data).await
 }

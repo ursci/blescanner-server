@@ -3,11 +3,11 @@ use anyhow::Result;
 use chrono::Local;
 use diesel::dsl::insert_into;
 
-use crate::db::config::{Pool};
+use crate::db::config::Pool;
 use crate::db::schema::device_logs::dsl::*;
-use crate::models::device_logs::{DeviceLogPayload, DeviceLogSchema};
 use crate::diesel::RunQueryDsl;
 use crate::models::device_logs::DeviceLogResponse;
+use crate::models::device_logs::{DeviceLogPayload, DeviceLogSchema};
 
 /// Get device_logs
 pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
@@ -18,7 +18,10 @@ pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error>
 }
 
 /// Post device_logs
-pub async fn post_device_logs(db: web::Data<Pool>, data: web::Json<DeviceLogPayload>) -> Result<HttpResponse, Error> {
+pub async fn post_device_logs(
+    db: web::Data<Pool>,
+    data: web::Json<DeviceLogPayload>,
+) -> Result<HttpResponse, Error> {
     Ok(web::block(move || post(db, data))
         .await
         .map(|logs| HttpResponse::Ok().json(logs))
@@ -33,7 +36,10 @@ fn get(db: web::Data<Pool>) -> Result<Vec<DeviceLogResponse>, diesel::result::Er
 }
 
 /// Handle db connection and insert the device logs into database.
-fn post(db: web::Data<Pool>, data: web::Json<DeviceLogPayload>) -> Result<DeviceLogResponse, diesel::result::Error> {
+fn post(
+    db: web::Data<Pool>,
+    data: web::Json<DeviceLogPayload>,
+) -> Result<DeviceLogResponse, diesel::result::Error> {
     let conn = db.get().unwrap();
     let device_log = DeviceLogSchema {
         gateway_id: &data.gateway_id,
@@ -42,6 +48,8 @@ fn post(db: web::Data<Pool>, data: web::Json<DeviceLogPayload>) -> Result<Device
         rssi: &data.rssi,
         created_at: Local::now().naive_local(),
     };
-    let items = insert_into(device_logs).values(&device_log).get_result(&conn)?;
+    let items = insert_into(device_logs)
+        .values(&device_log)
+        .get_result(&conn)?;
     Ok(items)
 }

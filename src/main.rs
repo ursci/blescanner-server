@@ -4,15 +4,15 @@ extern crate diesel_migrations;
 
 use actix_web::{middleware, web, App, HttpServer};
 
-use crate::db::config::{establish_connection};
+use crate::db::config::establish_connection;
 use crate::handlers::device_logs::{get_device_logs, post_device_logs};
 
 mod db;
+mod errors;
 mod handlers;
 mod models;
 mod repositories;
 mod usecases;
-mod errors;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
