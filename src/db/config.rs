@@ -1,7 +1,7 @@
 //! These are the configuration utils for the DB connection handling and migrations
 
+use diesel::prelude::PgConnection;
 use diesel::r2d2::{self, ConnectionManager};
-use diesel::{prelude::PgConnection};
 
 pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
