@@ -1,15 +1,31 @@
-# builder
-FROM rust:1.43.1 as builder
-ENV PKG_CONFIG_ALLOW_CROSS=1
-ENV APP_HOME /usr/src/blescanner
+FROM rust:1.50.0 AS develop
 
-WORKDIR ${APP_HOME}
+EXPOSE 8080
+
+WORKDIR /app
+
+RUN cargo install cargo-watch
+RUN cargo install diesel_cli
+
 COPY . .
 
-RUN cargo install --path .
+# builder
+FROM rust:1.50.0 AS builder
 
-FROM gcr.io/distroless/cc-debian10
+WORKDIR /app
 
-COPY --from=builder /usr/local/cargo/bin/blescanner /usr/local/bin/blescanner
+COPY . .
+RUN cargo install diesel_cli
+RUN cargo build --release
 
-CMD ["blescanner"]
+# production
+FROM debian:buster-slim AS production
+
+RUN apt-get update
+RUN apt-get install libpq-dev -y
+
+COPY --from=builder /app/blescanner-server/target/release/blescanner-server .
+
+EXPOSE 8080
+
+CMD ["./blescanner-server"]

@@ -17,9 +17,12 @@ mod usecases;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
-    env_logger::init();
     std::env::set_var("RUST_LOG", "actix_web=debug");
+    env_logger::init();
 
+    let host = dotenv::var("HOST").expect("HOST not found.");
+    let port = dotenv::var("PORT").expect("PORT not found.");
+    let url = format!("{}:{}", &host, &port);
     let pool = establish_connection();
 
     HttpServer::new(move || {
@@ -34,7 +37,7 @@ async fn main() -> std::io::Result<()> {
                 ),
             )
     })
-    .bind("127.0.0.1:8081")?
+    .bind(&url)?
     .run()
     .await
 }
