@@ -1,9 +1,10 @@
-use actix_web::{web, Error, HttpResponse};
+use actix_web::{web, HttpResponse};
 use anyhow::Result;
 use diesel::dsl::insert_into;
 
 use crate::db::schema::device_logs::dsl::*;
 use crate::diesel::RunQueryDsl;
+use crate::errors::BleScannerError;
 use crate::models::device_logs::{
     DeviceLogSchema, DeviceLogs, GetDeviceLogResponse, PostDeviceLogResponse,
 };
@@ -12,7 +13,7 @@ use crate::{db::config::Pool, models::device_logs::DeviceLogQuery};
 use super::{HTTP_STATUS, REQUEST_SUCCEEDED, RESOURCE_CREATED};
 
 /// Get device_logs
-pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error> {
+pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, BleScannerError> {
     Ok(web::block(move || handle_load(db))
         .await
         .map(|logs| {
@@ -20,14 +21,14 @@ pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, Error>
                 .header(HTTP_STATUS, REQUEST_SUCCEEDED)
                 .json(logs)
         })
-        .map_err(|_| HttpResponse::InternalServerError())?)
+        .map_err(|_| BleScannerError::InternalError)?)
 }
 
 /// Post device_logs
 pub async fn post_device_logs(
     db: web::Data<Pool>,
     payloads: web::Json<DeviceLogs>,
-) -> Result<HttpResponse, Error> {
+) -> Result<HttpResponse, BleScannerError> {
     Ok(web::block(move || handle_insert(db, payloads))
         .await
         .map(|logs| {
@@ -35,7 +36,7 @@ pub async fn post_device_logs(
                 .header(HTTP_STATUS, RESOURCE_CREATED)
                 .json(logs)
         })
-        .map_err(|_| HttpResponse::InternalServerError())?)
+        .map_err(|_| BleScannerError::InternalError)?)
 }
 
 /// Handle db connection and load the device logs from database.
