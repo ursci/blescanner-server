@@ -4,7 +4,10 @@ Server application of the "BLE Scanner" project.
 
 This is a very first version of "BLE Scanner", a project lead by [Urban Sciences Lab](https://urbansciences.jp/).
 
-## How to run the server
+## How to start the server
+### Requirements
+[rustc](https://www.rust-lang.org/tools/install) and [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) need to be installed. Cargo is expected to build and test with the current stable, beta, and nightly [releases](https://doc.rust-lang.org/book/appendix-07-nightly-rust.html).
+
 First, you have to prepare environment variables via .env file. This repository has a .env.example file. You can create the .env file copying this file.
 
 FIY, you can modify each values in .env file, especially DB_PASS.
@@ -27,17 +30,24 @@ And you can check the process with command below.
 $ docker-compose logs -f
 ```
 
-Once you have confirmed each startup process, run the migration in the container.
+Once you have confirmed each startup process, setup the migration tool in the container with this command.
 
 ```bash
 $ diesel setup
 ```
 
-### Requirements
-[TBD]
+## How to develop the API server
+See above section for the requirement and confirm that the Docker build is finished and processes are running, you can start the development.
 
-## How to develop the server
-[TBD]
+Start and shutdown the docker process with these commands below.
+
+```bash
+docker-compose up
+```
+
+```bash
+docker-compose down
+```
 
 ## License
 
