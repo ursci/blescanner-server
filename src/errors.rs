@@ -11,38 +11,22 @@ struct ErrorResponse {
     message: String,
 }
 #[derive(Debug, Error)]
-pub enum BleScannerError {
-    #[error("Bad Request")]
-    BadRequest,
-    #[error("Forbidden")]
-    Forbidden,
-    #[error("Not Found")]
-    NotFound,
-    #[error("Request Timeout")]
-    RequestTimeout,
+pub enum BleScannerApiError {
     #[error("An internal error occurred. Please try again later.")]
     InternalError,
 }
 
-impl BleScannerError {
+impl BleScannerApiError {
     pub fn name(&self) -> String {
         match self {
-            Self::BadRequest => "Bad Request".to_string(),
-            Self::Forbidden => "Forbidden".to_string(),
-            Self::NotFound => "Not Found".to_string(),
-            Self::RequestTimeout => "Request Timeout".to_string(),
             Self::InternalError => "InternalError".to_string(),
         }
     }
 }
 
-impl ResponseError for BleScannerError {
+impl ResponseError for BleScannerApiError {
     fn status_code(&self) -> StatusCode {
         match *self {
-            Self::BadRequest => StatusCode::BAD_REQUEST,
-            Self::Forbidden => StatusCode::FORBIDDEN,
-            Self::NotFound => StatusCode::NOT_FOUND,
-            Self::RequestTimeout => StatusCode::REQUEST_TIMEOUT,
             Self::InternalError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
@@ -56,4 +40,12 @@ impl ResponseError for BleScannerError {
         };
         HttpResponse::build(status_code).json(error_response)
     }
+}
+
+#[derive(Error, Debug)]
+pub enum BleScnnerDbError {
+    #[error("failed to open given file")]
+    Diesel(#[from] r2d2::Error),
+    #[error("failed to get a successful response: {0}")]
+    R2d2(#[from] diesel::result::Error),
 }
