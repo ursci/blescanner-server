@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
+      TZ: Asia/Tokyo
+    restart: always
+    ports:
+      - '5432:5432'
+    volumes:
+      - psql-data:/var/lib/postgresql/data
+
+
+  api:
+    build:
+      context: .
+      target: 'develop'
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    command: /bin/sh -c "cargo watch -x run"
+
+volumes:
+  psql-data:
+  cargo-cache:
+  target-cache:
