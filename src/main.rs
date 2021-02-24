@@ -2,10 +2,14 @@
 extern crate diesel;
 extern crate diesel_migrations;
 
-use actix_web::{middleware, web, App, HttpServer};
+use actix_web::{
+    middleware,
+    web::{self},
+    App, HttpServer,
+};
 
 use crate::db::config::establish_connection;
-use crate::handlers::device_logs::{get_device_logs, post_device_logs};
+use crate::handlers::device_logs::{get_devicelog_handler, post_devicelog_handler};
 
 mod db;
 mod errors;
@@ -32,8 +36,8 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api/v1").service(
                     web::resource("/device_logs")
-                        .route(web::get().to(get_device_logs))
-                        .route(web::post().to(post_device_logs)),
+                        .route(web::get().to(get_devicelog_handler))
+                        .route(web::post().to(post_devicelog_handler)),
                 ),
             )
     })

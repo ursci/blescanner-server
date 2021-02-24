@@ -1,5 +1,6 @@
 use actix_web::{web, HttpResponse};
 use anyhow::Result;
+use async_trait::async_trait;
 use diesel::dsl::insert_into;
 
 use crate::db::schema::device_logs::dsl::*;
@@ -12,31 +13,69 @@ use crate::{db::config::Pool, models::device_logs::DeviceLogQuery};
 
 use super::{HTTP_STATUS, REQUEST_SUCCEEDED, RESOURCE_CREATED};
 
-/// Get device_logs
-pub async fn get_device_logs(db: web::Data<Pool>) -> Result<HttpResponse, BleScannerApiError> {
-    Ok(web::block(move || handle_load(db))
-        .await
-        .map(|logs| {
-            HttpResponse::Ok()
-                .header(HTTP_STATUS, REQUEST_SUCCEEDED)
-                .json(logs)
-        })
-        .map_err(|_| BleScannerApiError::InternalError)?)
+#[async_trait(?Send)]
+pub trait IsDeviceLogRepository {
+    async fn get_device_logs(
+        &self,
+        db: web::Data<Pool>,
+    ) -> Result<HttpResponse, BleScannerApiError>;
+
+    async fn post_device_logs(
+        &self,
+        db: web::Data<Pool>,
+        payloads: web::Json<DeviceLogs>,
+    ) -> Result<HttpResponse, BleScannerApiError>;
 }
 
-/// Post device_logs
-pub async fn post_device_logs(
-    db: web::Data<Pool>,
-    payloads: web::Json<DeviceLogs>,
-) -> Result<HttpResponse, BleScannerApiError> {
-    Ok(web::block(move || handle_insert(db, payloads))
-        .await
-        .map(|logs| {
-            HttpResponse::Ok()
-                .header(HTTP_STATUS, RESOURCE_CREATED)
-                .json(logs)
-        })
-        .map_err(|_| BleScannerApiError::InternalError)?)
+pub trait HaveDeviceLogRepository {
+    type DeviceLogRepository: IsDeviceLogRepository;
+
+    fn provide_device_logs_repository(&self) -> &Self::DeviceLogRepository;
+}
+
+#[derive(Clone, Debug)]
+pub struct DbContext {}
+
+#[async_trait(?Send)]
+impl IsDeviceLogRepository for DbContext {
+    /// Get device_logs
+    async fn get_device_logs(
+        &self,
+        db: web::Data<Pool>,
+    ) -> Result<HttpResponse, BleScannerApiError> {
+        Ok(web::block(move || handle_load(db))
+            .await
+            .map(|logs| {
+                HttpResponse::Ok()
+                    .header(HTTP_STATUS, REQUEST_SUCCEEDED)
+                    .json(logs)
+            })
+            .map_err(|_| BleScannerApiError::InternalError)?)
+    }
+
+    /// Post device_logs
+    async fn post_device_logs(
+        &self,
+        db: web::Data<Pool>,
+        payloads: web::Json<DeviceLogs>,
+    ) -> Result<HttpResponse, BleScannerApiError> {
+        Ok(web::block(move || handle_insert(db, payloads))
+            .await
+            .map(|logs| {
+                HttpResponse::Ok()
+                    .header(HTTP_STATUS, RESOURCE_CREATED)
+                    .json(logs)
+            })
+            .map_err(|_| BleScannerApiError::InternalError)?)
+    }
+}
+
+impl HaveDeviceLogRepository for DbContext {
+    type DeviceLogRepository = DbContext;
+
+    fn provide_device_logs_repository(&self) -> &Self::DeviceLogRepository {
+        &self
+    }
 }
 
 /// Handle db connection and load the device logs from database.
@@ -82,3 +121,4 @@ fn handle_insert(
 
     Ok(result)
 }
+
