@@ -11,6 +11,8 @@ use actix_web::{
 use crate::db::config::establish_connection;
 use crate::handlers::device_logs::{get_devicelog_handler, post_devicelog_handler};
 
+const JSON_SIZE_LIMIT: usize = 1024 * 1024 * 50;
+
 mod db;
 mod errors;
 mod handlers;
@@ -32,6 +34,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
+            .data(web::JsonConfig::default().limit(JSON_SIZE_LIMIT))
             .wrap(middleware::Logger::default())
             .service(
                 web::scope("/api/v1").service(
