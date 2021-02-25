@@ -2,10 +2,10 @@ use actix_web::{web, HttpResponse};
 use anyhow::Result;
 use async_trait::async_trait;
 
+use crate::db::config::Pool;
 use crate::errors::BleScannerApiError;
 use crate::models::device_logs::DeviceLogs;
-use crate::repositories::device_logs::{IsDeviceLogRepository, HaveDeviceLogRepository};
-use crate::{db::config::Pool, repositories::device_logs::DbContext};
+use crate::repositories::device_logs::{DbContext, HaveDeviceLogRepository, IsDeviceLogRepository};
 
 #[async_trait(?Send)]
 pub trait IsDeviceLogUseCase: HaveDeviceLogRepository {

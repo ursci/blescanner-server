@@ -3,13 +3,13 @@ use anyhow::Result;
 use async_trait::async_trait;
 use diesel::dsl::insert_into;
 
+use crate::db::config::Pool;
 use crate::db::schema::device_logs::dsl::*;
 use crate::diesel::RunQueryDsl;
 use crate::errors::{BleScannerApiError, BleScnnerDbError};
 use crate::models::device_logs::{
-    DeviceLogSchema, DeviceLogs, GetDeviceLogResponse, PostDeviceLogResponse,
+    DeviceLogQuery, DeviceLogSchema, DeviceLogs, GetDeviceLogResponse, PostDeviceLogResponse,
 };
-use crate::{db::config::Pool, models::device_logs::DeviceLogQuery};
 
 use super::{HTTP_STATUS, REQUEST_SUCCEEDED, RESOURCE_CREATED};
 
@@ -121,4 +121,3 @@ fn handle_insert(
 
     Ok(result)
 }
-

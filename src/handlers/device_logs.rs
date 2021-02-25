@@ -1,10 +1,11 @@
 use actix_web::{web, HttpResponse};
 use anyhow::Result;
 
+use crate::db::config::Pool;
+use crate::errors::BleScannerApiError;
 use crate::models::device_logs::DeviceLogs;
-use crate::usecases::device_logs::HaveDeviceLogUseCase;
-use crate::{db::config::Pool, usecases::device_logs::IsDeviceLogUseCase};
-use crate::{errors::BleScannerApiError, repositories::device_logs::DbContext};
+use crate::repositories::device_logs::DbContext;
+use crate::usecases::device_logs::{HaveDeviceLogUseCase, IsDeviceLogUseCase};
 
 /// Handler to GET /api/v1/device_logs
 pub async fn get_devicelog_handler(
