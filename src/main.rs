@@ -8,7 +8,6 @@ use actix_web::{
     App, HttpServer,
 };
 
-use crate::db::config::establish_connection;
 use crate::handlers::device_logs::{get_devicelog_handler, post_devicelog_handler};
 
 const JSON_SIZE_LIMIT: usize = 1024 * 1024 * 50;
@@ -29,11 +28,9 @@ async fn main() -> std::io::Result<()> {
     let host = dotenv::var("HOST").expect("HOST not found.");
     let port = dotenv::var("PORT").expect("PORT not found.");
     let url = format!("{}:{}", &host, &port);
-    let pool = establish_connection();
 
     HttpServer::new(move || {
         App::new()
-            .data(pool.clone())
             .data(web::JsonConfig::default().limit(JSON_SIZE_LIMIT))
             .wrap(middleware::Logger::default())
             .service(
