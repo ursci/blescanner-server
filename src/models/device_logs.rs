@@ -51,10 +51,10 @@ pub struct PostDeviceLogResponse {
 #[derive(Insertable, Debug)]
 #[table_name = "device_logs"]
 pub struct DeviceLogSchema<'a> {
-    pub gateway_name: &'a String,
-    pub location: &'a String,
-    pub device_uuid: &'a String,
-    pub device_name: &'a String,
+    pub gateway_name: &'a str,
+    pub location: &'a str,
+    pub device_uuid: &'a str,
+    pub device_name: &'a str,
     pub rssi: &'a i32,
     // Replaced from `created_at` because the scanned time is asynchronously send to the server.
     pub scanned_time: &'a NaiveDateTime,

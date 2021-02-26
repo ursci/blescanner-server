@@ -3,7 +3,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use diesel::dsl::insert_into;
 
-use crate::db::config::Pool;
+use crate::db::config::establish_connection;
 use crate::db::schema::device_logs::dsl::*;
 use crate::diesel::RunQueryDsl;
 use crate::errors::{BleScannerApiError, BleScnnerDbError};
@@ -15,14 +15,10 @@ use super::{HTTP_STATUS, REQUEST_SUCCEEDED, RESOURCE_CREATED};
 
 #[async_trait(?Send)]
 pub trait IsDeviceLogRepository {
-    async fn get_device_logs(
-        &self,
-        db: web::Data<Pool>,
-    ) -> Result<HttpResponse, BleScannerApiError>;
+    async fn get_device_logs(&self) -> Result<HttpResponse, BleScannerApiError>;
 
     async fn post_device_logs(
         &self,
-        db: web::Data<Pool>,
         payloads: web::Json<DeviceLogs>,
     ) -> Result<HttpResponse, BleScannerApiError>;
 }
@@ -34,16 +30,14 @@ pub trait HaveDeviceLogRepository {
 }
 
 #[derive(Clone, Debug)]
-pub struct DbContext {}
+pub struct MockDeviceLogRepository {}
 
 #[async_trait(?Send)]
-impl IsDeviceLogRepository for DbContext {
+impl IsDeviceLogRepository for MockDeviceLogRepository {
     /// Get device_logs
-    async fn get_device_logs(
-        &self,
-        db: web::Data<Pool>,
-    ) -> Result<HttpResponse, BleScannerApiError> {
-        Ok(web::block(move || handle_load(db))
+    #[rustfmt::skip]
+    async fn get_device_logs(&self) -> Result<HttpResponse, BleScannerApiError> {
+        Ok(web::block(move || {handle_load()})
             .await
             .map(|logs| {
                 HttpResponse::Ok()
@@ -56,10 +50,9 @@ impl IsDeviceLogRepository for DbContext {
     /// Post device_logs
     async fn post_device_logs(
         &self,
-        db: web::Data<Pool>,
         payloads: web::Json<DeviceLogs>,
     ) -> Result<HttpResponse, BleScannerApiError> {
-        Ok(web::block(move || handle_insert(db, payloads))
+        Ok(web::block(move || handle_insert(payloads))
             .await
             .map(|logs| {
                 HttpResponse::Ok()
@@ -70,8 +63,8 @@ impl IsDeviceLogRepository for DbContext {
     }
 }
 
-impl HaveDeviceLogRepository for DbContext {
-    type DeviceLogRepository = DbContext;
+impl HaveDeviceLogRepository for MockDeviceLogRepository {
+    type DeviceLogRepository = MockDeviceLogRepository;
 
     fn provide_device_logs_repository(&self) -> &Self::DeviceLogRepository {
         &self
@@ -79,8 +72,9 @@ impl HaveDeviceLogRepository for DbContext {
 }
 
 /// Handle db connection and load the device logs from database.
-fn handle_load(db: web::Data<Pool>) -> Result<GetDeviceLogResponse, BleScnnerDbError> {
-    let conn = db.get()?;
+fn handle_load() -> Result<GetDeviceLogResponse, BleScnnerDbError> {
+    let pool = establish_connection();
+    let conn = pool.get()?;
 
     let queried_item: Vec<DeviceLogQuery> = device_logs.load::<DeviceLogQuery>(&conn)?;
 
@@ -92,12 +86,12 @@ fn handle_load(db: web::Data<Pool>) -> Result<GetDeviceLogResponse, BleScnnerDbE
 
 /// Handle db connection and insert the device logs into database.
 fn handle_insert(
-    db: web::Data<Pool>,
     payloads: web::Json<DeviceLogs>,
 ) -> Result<PostDeviceLogResponse, BleScnnerDbError> {
-    let empty_device_name = "No device name".to_string();
-    let conn = db.get()?;
+    let pool = establish_connection();
+    let conn = pool.get()?;
 
+    let empty_device_name = "No device name".to_string();
     // Convert the data for table schema
     let converted_logs = payloads
         .device_logs
