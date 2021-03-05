@@ -41,30 +41,48 @@ jobs:
         - os: ubuntu-latest
           rust: nightly
           other: i686-unknown-linux-gnu
-        - os: macos-latest
-          rust: stable
-          other: x86_64-apple-ios
-
+    services:
+      postgres:
+        image: postgres:12
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
     steps:
-    - uses: actions/checkout@v2
-    - run: rustup update --no-self-update ${{ matrix.rust }} && rustup default ${{ matrix.rust }}
-    - run: rustup target add ${{ matrix.other }}
-    - run: rustup component add rustc-dev llvm-tools-preview rust-docs
-      if: startsWith(matrix.rust, 'nightly')
-    - run: sudo apt update -y && sudo apt install gcc-multilib libsecret-1-0 libsecret-1-dev -y
-      if: matrix.os == 'ubuntu-latest'
-    - run: rustup component add rustfmt || echo "rustfmt not available"
-    - run: cargo test
+      - uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+          components: rustfmt
+          targets: wasm32-unknown-unknown
+      - uses: actions/checkout@master
+      - name: Install Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install libudev-dev zlib1g-dev alsa libasound2-dev
+      - name: Build
+        run: cargo build --verbose
+      - name: Install Diesel CLI
+        run: cargo install diesel_cli --no-default-features --features postgres
+      - name: Setup diesel
+        env:
+         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: diesel setup && diesel setup --database-url ${{ secrets.TEST_DATABASE_URL }}
+      - name: Run tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          touch .env
+          echo TEST_DATABASE_URL=${{ secrets.TEST_DATABASE_URL }} > .env
+          cargo test --verbose
 
   success:
-    name: bors build finished
     needs: [rustfmt, clippy, test]
     runs-on: ubuntu-latest
     if: "success() && github.event_name == 'push'"
     steps:
     - run: echo ok
   failure:
-    name: bors build finished
     needs: [rustfmt, clippy, test]
     runs-on: ubuntu-latest
     if: "!success() && github.event_name == 'push'"
