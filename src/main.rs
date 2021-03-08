@@ -1,23 +1,12 @@
-#[macro_use]
-extern crate diesel;
-extern crate diesel_migrations;
-
 use actix_web::{
     middleware,
     web::{self},
     App, HttpServer,
 };
 
-use crate::handlers::device_logs::{get_devicelog_handler, post_devicelog_handler};
+use ble_gateway_api::handlers::device_logs::{get_devicelog_handler, post_devicelog_handler};
 
 const JSON_SIZE_LIMIT: usize = 1024 * 1024 * 50;
-
-mod db;
-mod errors;
-mod handlers;
-mod models;
-mod repositories;
-mod usecases;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

@@ -11,7 +11,9 @@ use crate::models::device_logs::{
     DeviceLogQuery, DeviceLogSchema, DeviceLogs, GetDeviceLogResponse, PostDeviceLogResponse,
 };
 
-use super::{HTTP_STATUS, REQUEST_SUCCEEDED, RESOURCE_CREATED};
+static HTTP_STATUS: &str = "Status";
+static REQUEST_SUCCEEDED: &str = "200 OK";
+static RESOURCE_CREATED: &str = "201 Created";
 
 #[async_trait(?Send)]
 pub trait IsDeviceLogRepository {
@@ -114,4 +116,49 @@ fn handle_insert(
     let result = PostDeviceLogResponse { data: queried_item };
 
     Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::db::config::establish_test_connection;
+    use crate::models::device_logs::{DeviceLogPayload, DeviceLogs};
+    use actix_web::web::Json;
+    use chrono::{NaiveDate, NaiveDateTime, NaiveTime};
+    use diesel::delete;
+
+    #[test]
+    fn test_handle_insert() {
+        let d = NaiveDate::from_ymd(2021, 3, 3);
+        let t = NaiveTime::from_hms_milli(12, 35, 56, 789);
+        let dt = NaiveDateTime::new(d, t);
+
+        let payload_test1 = DeviceLogPayload {
+            device_name: "test_device".to_string(),
+            location_name: "tokyo_museum".to_string(),
+            scanned_name: Some("test_gateway".to_string()),
+            scanned_id: "001".to_string(),
+            scanned_rssi: 10000,
+            scanned_time: dt,
+        };
+
+        let payload_test2 = DeviceLogPayload {
+            device_name: "test_device2".to_string(),
+            location_name: "tokyo_museum".to_string(),
+            scanned_name: Some("test_gateway2".to_string()),
+            scanned_id: "002".to_string(),
+            scanned_rssi: 10001,
+            scanned_time: dt,
+        };
+
+        let payloads = DeviceLogs {
+            device_logs: vec![payload_test1, payload_test2],
+        };
+
+        let connection = establish_test_connection().unwrap();
+        let _ = delete(device_logs).execute(&connection).unwrap();
+
+        let insert_result = handle_insert(Json(payloads)).unwrap();
+        assert_eq!(insert_result.data, 2);
+    }
 }
