@@ -1,4 +1,5 @@
 # BLE Scanner Server
+[![CI](https://github.com/ursci/blescanner-server/actions/workflows/main.yml/badge.svg)](https://github.com/ursci/blescanner-server/actions/workflows/main.yml)
 
 Server application of the "BLE Scanner" project.
 
