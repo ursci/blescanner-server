@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   postgres:
+    container_name: blescannerdb
     build:
       context: .
       dockerfile: Dockerfile-postgres
@@ -16,8 +17,8 @@ services:
     volumes:
       - psql-data:/var/lib/postgresql/data
 
-
   api:
+    container_name: blescannerbackend
     build:
       context: .
       target: 'develop'
@@ -35,6 +36,28 @@ services:
       - cargo-cache:/usr/local/cargo/registry
       - target-cache:/app/target
     command: cargo watch -x run
+
+  admin:
+    container_name: blescannerfrontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile-frontend
+      target: 'develop'
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    command: yarn dev
+    #networks:
+    #  - blescanner-server_default
+    environment:
+      CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING}
+
+#networks:
+#  blescanner-server_default:
+#    external: true
 
 volumes:
   psql-data:

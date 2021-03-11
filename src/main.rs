@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use actix_web::{
     middleware,
     web::{self},
@@ -19,9 +20,13 @@ async fn main() -> std::io::Result<()> {
     let url = format!("{}:{}", &host, &port);
 
     HttpServer::new(move || {
+        //TODO: strict later
+        let cors = Cors::permissive();
+
         App::new()
             .data(web::JsonConfig::default().limit(JSON_SIZE_LIMIT))
             .wrap(middleware::Logger::default())
+            .wrap(cors)
             .service(
                 web::scope("/api/v1").service(
                     web::resource("/device_logs")

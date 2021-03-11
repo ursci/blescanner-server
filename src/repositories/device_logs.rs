@@ -82,7 +82,6 @@ fn handle_load() -> Result<GetDeviceLogResponse, BleScnnerDbError> {
 
     // Convert the data for API response type
     let result = GetDeviceLogResponse { data: queried_item };
-
     Ok(result)
 }
 
