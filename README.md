@@ -32,8 +32,11 @@ $ docker-compose logs -f
 ```
 
 Once you have confirmed each startup process, setup the migration tool in the container with this command.
+
 And make sure you need setup test database for testings.
+
 ```bash
+$ docker-compose run api /bin/bash
 $ diesel setup
 $ diesel setup --database_url <TEST_DATABASE_URL>
 ```
