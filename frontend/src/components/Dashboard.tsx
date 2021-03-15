@@ -58,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </Table>
       <div className={classes.seeMore}>
         <Link color="primary" href="#">
-          See more orders
+          See more logs
         </Link>
       </div>
     </Fragment>
