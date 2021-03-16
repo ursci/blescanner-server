@@ -1,4 +1,5 @@
-import { FunctionComponent, Fragment } from "react";
+import React, { FunctionComponent, Fragment } from "react";
+
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { Toolbar } from "@material-ui/core";

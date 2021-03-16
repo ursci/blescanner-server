@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, ReactElement, useState, useEffect } from "react";
 
 import { Layout } from "~/components/Layout";
 import { Dashboard } from "~/components/Dashboard";
@@ -7,7 +7,7 @@ import { DeviceLog } from "~/models/device_logs";
 import { DeviceLogUseCase } from "~/usecases/device_logs";
 import { DeviceLogRepository } from "~/repositories/device_logs";
 
-const Index = () => {
+const Index = (): ReactElement => {
   // usecaseクラスの生成
   const deviceLogUseCase = new DeviceLogUseCase(new DeviceLogRepository());
 
