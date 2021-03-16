@@ -4,6 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const port = 3000
 const dev = process.env.NODE_ENV !== 'production'
+// should be name of the docker container
 const API_URL = 'http://blescannerbackend:8080/api/v1/device_logs'
 
 const app = next({ dev })
@@ -21,11 +22,11 @@ app.prepare().then(() => {
     })
   );
 
-  server.all('*', (req, res) => {
+  server.all('*', (req: Express.Request, res: Express.Response) => {
     return handle(req, res)
   });
 
-  server.listen(port, err => {
+  server.listen(port, (err: Error) => {
     if (err) throw err
     console.log(`> Ready on http://localhost:${port}`)
   });
