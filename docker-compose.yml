@@ -50,14 +50,8 @@ services:
       - /app/node_modules
       - /app/.next
     command: yarn dev
-    #networks:
-    #  - blescanner-server_default
     environment:
       CHOKIDAR_USEPOLLING: ${CHOKIDAR_USEPOLLING}
-
-#networks:
-#  blescanner-server_default:
-#    external: true
 
 volumes:
   psql-data:
